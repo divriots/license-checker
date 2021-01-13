@@ -2,7 +2,7 @@
   "name": "@divriots/license-checker",
   "description": "Check license info for a package",
   "author": "Dav Glass <davglass@gmail.com>",
-  "version": "25.1.0",
+  "version": "25.1.2",
   "contributors": [
     "Adam Weber <adamweber01@gmail.com>",
     "Andrew Couch <andy@couchand.com>",
@@ -65,6 +65,7 @@
     "semver": "^5.5.0",
     "spdx-correct": "^3.1.1",
     "spdx-expression-parse": "^3.0.1",
+    "spdx-expression-validate": "^2.0.0",
     "spdx-satisfies": "^5.0.0",
     "treeify": "^1.1.0"
   },

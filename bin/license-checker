@@ -1,22 +1,48 @@
 #!/usr/bin/env node
 
-const checker = require('../license-checker');
+/*
+Copyright (c) 2013, Yahoo! Inc. All rights reserved.
+Code licensed under the BSD License:
+http://yuilibrary.com/license/
+*/
+
+var checker = require('../lib/index');
 const isValidLicense = require("spdx-expression-validate");
 const isSatisfiedLicense = require("spdx-satisfies");
 const correct = require('spdx-correct')
-const path = require('path');
 
-const start = ".";
-const shouldDump = process.argv.includes('--csv');
-const config = require(path.resolve(start, 'package.json'))['license-checker']
-const {allow, override = {}} = config;
-if (!allow) {
-  console.error('Missing required "license-checker.allow" config in ./package.json');
-  process.exit(1);
+var args = require('../lib/args').parse();
+var path = require('path');
+
+if (args.help) {
+    console.error('license-checker@' + require('../package.json').version);
+    var usage = [
+        '',
+        '   --start [path of the initial json to look for]',
+        '   --csv output in csv format.',
+        '',
+        '   --version The current version',
+        '   --help  The text you are reading right now :)',
+        ''
+    ];
+    console.error(usage.join('\n'), '\n');
+    process.exit(0);
 }
 
+if (args.version) {
+    console.error(require('../package.json').version);
+    process.exit(1);
+}
+
+const config = require(path.resolve(args.start, 'package.json'))['license-checker']
+if (!config || !config.allow) {
+    console.error('Missing required "license-checker.allow" config in ./package.json');
+    process.exit(1);
+}
+const {allow, override = {}} = config;
+
 checker.init({
-    start,
+    ...args,
     excludePrivatePackages: true
 }, function(err, packages) {
     if (err) {
@@ -38,7 +64,7 @@ checker.init({
           key, licenseName, repository, path
         }
       });
-      if (shouldDump) {
+      if (args.csv) {
         console.log(`"Name@Version","License","Url"`)
         infos.sort((a,b) => `${a.key}`.localeCompare(`${b.key}`)).map(({key, licenseName, repository}) => `"${key}","${licenseName}","${repository}"`).forEach(it => console.log(it))
       }
