@@ -1,5 +1,5 @@
 {
-  "name": "license-checker",
+  "name": "@divriots/license-checker",
   "description": "Check license info for a package",
   "author": "Dav Glass <davglass@gmail.com>",
   "version": "25.0.1",
