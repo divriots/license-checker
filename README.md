@@ -1,6 +1,6 @@
 # NPM License Checker
 
-[![Build Status](https://www.travis-ci.org/rseidelsohn/license-checker-rseidelsohn.svg?branch=master)](https://www.travis-ci.org/rseidelsohn/license-checker-rseidelsohn)
+[![Build Status](https://www.travis-ci.org/rseidelsohn/license-checker.svg?branch=master)](https://www.travis-ci.org/rseidelsohn/license-checker)
 
 _This is a fork of davglass' [license-checker v.25.0.1](https://github.com/davglass/license-checker/releases/tag/v25.0.1) - Since that code doesn't seem to be updated regularly, I created this fork for being able to adding new features and fixing bugs._
 
@@ -11,12 +11,12 @@ Ever needed to see all the license info for a module and its dependencies?
 It's this easy:
 
 ```shell
-npm install -g license-checker-rseidelsohn
+npm install -g license-checker
 
 mkdir foo
 cd foo
 npm install yui-lint
-license-checker-rseidelsohn
+license-checker
 ```
 
 You should see something like this:
@@ -108,14 +108,14 @@ support some license strings that are not SPDX identifiers.
 ## Examples
 
 ```
-license-checker-rseidelsohn --json > /path/to/licenses.json
-license-checker-rseidelsohn --csv --out /path/to/licenses.csv
-license-checker-rseidelsohn --unknown
-license-checker-rseidelsohn --customPath customFormatExample.json
-license-checker-rseidelsohn --excludeModules 'MIT, MIT OR X11, BSD, ISC'
-license-checker-rseidelsohn --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
-license-checker-rseidelsohn --excludePackages 'internal-1;internal-2'
-license-checker-rseidelsohn --onlyunknown
+license-checker --json > /path/to/licenses.json
+license-checker --csv --out /path/to/licenses.csv
+license-checker --unknown
+license-checker --customPath customFormatExample.json
+license-checker --excludeModules 'MIT, MIT OR X11, BSD, ISC'
+license-checker --includePackages 'react@16.3.0;react-dom@16.3.0;lodash@4.3.1'
+license-checker --excludePackages 'internal-1;internal-2'
+license-checker --onlyunknown
 ```
 
 ## Custom format
@@ -167,13 +167,13 @@ checker.init(
 
 license-checker uses [debug](https://www.npmjs.com/package/debug) for internal logging. There’s two internal markers:
 
--   `license-checker-rseidelsohn:error` for errors
--   `license-checker-rseidelsohn:log` for non-errors
+-   `license-checker:error` for errors
+-   `license-checker:log` for non-errors
 
 Set the `DEBUG` environment variable to one of these to see debug output:
 
 ```shell
-$ export DEBUG=license-checker-rseidelsohn*; license-checker-rseidelsohn
+$ export DEBUG=license-checker*; license-checker
 scanning ./yui-lint
 ├─ cli@0.4.3
 │  ├─ repository: http://github.com/chriso/cli

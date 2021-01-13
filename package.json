@@ -1,8 +1,8 @@
 {
-    "name": "license-checker-rseidelsohn",
-    "description": "Feature enhanced version of the original license-checker v25.0.1",
-    "author": "Roman Seidelsohn <rseidelsohn@gmail.com>",
-    "version": "2.1.1",
+    "name": "@divriots/license-checker",
+    "description": "Feature enhanced version of feature enhanced version of the original license-checker v25.0.1",
+    "author": "Francois Valdy <francois@divriots.com>",
+    "version": "25.2.0",
     "license": "BSD-3-Clause",
     "contributors": [
         "Adam Weber <adamweber01@gmail.com>",
@@ -69,9 +69,10 @@
         "nopt": "^5.0.0",
         "read-installed": "~4.0.3",
         "semver": "^7.3.5",
-        "spdx-correct": "^3.0.0",
-        "spdx-expression-parse": "^3.0.0",
+        "spdx-correct": "^3.1.1",
+        "spdx-expression-parse": "^3.0.1",
         "spdx-satisfies": "^5.0.0",
+        "spdx-expression-validate": "^2.0.0",
         "treeify": "^1.1.0"
     },
     "devDependencies": {
@@ -98,10 +99,10 @@
     ],
     "main": "./lib/index.js",
     "bin": {
-        "license-checker-rseidelsohn": "./bin/license-checker-rseidelsohn"
+        "license-checker": "./bin/license-checker"
     },
     "scripts": {
-        "changes": "github-changes -o RSeidelsohn -r license-checker-rseidelsohn",
+        "changes": "github-changes -o divriots -r license-checker",
         "contrib": "node ./scripts/contrib.js",
         "pretest": "eslint --fix .",
         "test": "jenkins-mocha ./tests/*.js",
@@ -109,12 +110,12 @@
     },
     "preferGlobal": true,
     "bugs": {
-        "url": "http://github.com/RSeidelsohn/license-checker-rseidelsohn/issues"
+        "url": "http://github.com/divriots/license-checker/issues"
     },
     "license": "BSD-3-Clause",
     "repository": {
         "type": "git",
-        "url": "https://github.com/RSeidelsohn/license-checker-rseidelsohn.git"
+        "url": "https://github.com/divriots/license-checker.git"
     },
     "nyc": {
         "check-coverage": true,

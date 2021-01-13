@@ -13,6 +13,9 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const chalk = require('chalk');
 const fs = require('fs');
+const isValidLicense = require("spdx-expression-validate");
+const isSatisfiedLicense = require("spdx-satisfies");
+const correct = require('spdx-correct');
 const hasFailingArg = parsedArgs.failOn || parsedArgs.onlyAllow;
 
 const usageMessage = [
@@ -33,11 +36,13 @@ const usageMessage = [
     '   --includePackages [list] restrict output to the packages (either "package@fullversion" or "package@majorversion" or only "package") in the semicolon-seperated list',
     '   --json output in json format.',
     '   --markdown output in markdown format.',
+    '   --noStar omit start flag.',
     '   --onlyAllow [list] fail (exit with code 1) on the first occurrence of the licenses not in the semicolon-seperated list',
     '   --onlyunknown only list packages with unknown or guessed licenses.',
     '   --out [filepath] write the data to a specific file.',
     '   --plainVertical output in plain vertical format like [Angular CLI does](https://angular.io/3rdpartylicenses.txt)',
     '   --production only show production dependencies.',
+    '   --quiet no output, just checks.',
     '   --relativeLicensePath output the location of the license files as relative paths',
     '   --relativeModulePath output the location of the module files as relative paths',
     '   --start [filepath] path of the initial json to look for',
@@ -53,7 +58,7 @@ const kownOptions = Object.keys(args.knownOpts);
 const unknownArgs = Object.keys(parsedArgs).filter((arg) => !kownOptions.includes(arg));
 
 if (unknownArgs.length) {
-    console.error(`license-checker-rseidelsohn@${require('../package.json').version}`, '\n');
+    console.error(`license-checker@${require('../package.json').version}`, '\n');
     console.error(`Error: Unknown option${unknownArgs.length > 1 ? 's' : ''}: ${unknownArgs.map((unknownArg) => `'${unknownArg}'`).join(', ')}`);
     console.error(`       Possibly a typo? Currently known options are:`);
     console.error(usageMessage, '\n');
@@ -61,7 +66,7 @@ if (unknownArgs.length) {
 }
 
 if (!unknownArgs.length && parsedArgs.help) {
-    console.error(`license-checker-rseidelsohn@${require('../package.json').version}`);
+    console.error(`license-checker@${require('../package.json').version}`);
     console.error(usageMessage, '\n');
     process.exit(0);
 }
@@ -70,6 +75,14 @@ if (parsedArgs.version) {
     console.error(require('../package.json').version);
     process.exit(1);
 }
+
+const config = require(path.resolve(parsedArgs.start, 'package.json'))['license-checker']
+if (!config || !config.allow) {
+    console.error('Missing required "license-checker.allow" config in ./package.json');
+    process.exit(1);
+}
+const {allow, override = {}, ...rest} = config;
+Object.assign(parsedArgs, rest);
 
 if (parsedArgs.failOn && parsedArgs.onlyAllow) {
     console.error('Error: --failOn and --onlyAllow can not be used at the same time. Choose one or the other.');
@@ -87,28 +100,64 @@ licenseChecker.init(parsedArgs, function (err, json) {
         console.error(err);
     }
 
+    Object.entries(json).forEach(([key, module]) => {
+        if (!module.repository) module.repository = `https://www.npmjs.com/package/${key.replace(/(.)@/, '$1/v/')}`
+        if (Array.isArray(module.licenses)) module.licenses = module.licenses.join(' OR ');
+        if (parsedArgs.noStar && module.licenses.endsWith('*')) module.licenses = module.licenses.slice(0, -1);
+        if (!isValidLicense(module.licenses)) {
+            module.licenses = correct(module.licenses)
+        }
+        const over = override[key];
+        if (over && over.licenseName) {
+            module.licenses = over.licenseName;
+        }
+    })
+
     if (shouldColorizeOutput(parsedArgs)) {
         colorizeOutput(json);
     }
 
-    const formattedOutput = getFormattedOutput(json, parsedArgs);
-
-    if (parsedArgs.files || parsedArgs.out) {
-        if (parsedArgs.files) {
-            licenseChecker.asFiles(json, parsedArgs.files);
+    if (!parsedArgs.quiet) {
+        const formattedOutput = getFormattedOutput(json, parsedArgs);
+    
+        if (parsedArgs.files || parsedArgs.out) {
+            if (parsedArgs.files) {
+                licenseChecker.asFiles(json, parsedArgs.files);
+            }
+    
+            if (parsedArgs.out) {
+                const dir = path.dirname(parsedArgs.out);
+    
+                mkdirp.sync(dir);
+                fs.writeFileSync(parsedArgs.out, formattedOutput, 'utf8');
+            }
+        } else {
+            console.log(formattedOutput);
         }
+    }
 
-        if (parsedArgs.out) {
-            const dir = path.dirname(parsedArgs.out);
-
-            mkdirp.sync(dir);
-            fs.writeFileSync(parsedArgs.out, formattedOutput, 'utf8');
-        }
+    const errors = getLicenseViolations(json, allow)
+    if (errors.length) {
+        console.error(`License check errors:`, errors)
+        process.exit(1);
     } else {
-        console.log(formattedOutput);
+        process.exit(0);
     }
 });
 
+const getLicenseViolations = (json, allow) => {
+    return Object.entries(json).reduce((memo, [key, {licenses, path}]) => {
+        if (!licenses || licenses === "UNLICENSED") {
+            memo.push(`${key} is unlicensed (${path})`);
+        } else if (!isValidLicense(licenses)) {
+            memo.push(`${key} has invalid license ${licenses} (${path})`);
+        } else if (!isSatisfiedLicense(licenses, allow)) {
+            memo.push(`${key} has disallowed license ${licenses} (${path})`);
+        }
+        return memo;
+    }, []);
+};
+    
 function shouldColorizeOutput(args) {
     return args.color && !args.out && !args.files && !(args.csv || args.json || args.markdown || args.plainVertical);
 }
